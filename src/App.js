@@ -12,27 +12,7 @@ import {
 // =========================================================================
 import CONFIG from './constants/config';
 
-const COLORS = {
-  primary: '#E8668A',
-  secondary: '#F4A067',
-  accentGreen: '#B6FF33',
-  accentGreenText: '#8CB82D',
-  winnerBg: '#FFF0F3',
-  winnerBorder: '#E8668A',
-  statsBg: '#FAFFEB',
-  statsText: '#8CB82D',
-  defaultBg: '#F8F9FB',
-};
-
-const DESIGN_TOKENS = {
-  winnerBg: 'bg-[#FFF0F3]',
-  winnerBorder: 'border-[#E8668A]',
-  winnerTextColor: 'text-[#E8668A]',
-  defaultBorder: 'border-[#E8EDF2]',
-  statsBg: 'bg-[#FAFFEB]',
-  statsBorder: 'border-[#B6FF33]/60',
-  statsTextColor: 'text-[#8CB82D]',
-};
+import { COLORS, DESIGN_TOKENS } from './constants/colors';
 
 const TEMPLATES = [
   { id: 1, title: '팀 회식',    icon: <Coffee   className="w-3.5 h-3.5 text-pink-500"   />, bgColor: 'bg-[#FFD6E0]' },
