@@ -2,148 +2,23 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   PlusCircle, Home, User, Bell, Settings, Zap,
   Users, X, ChevronLeft,
-  CheckCircle2, Copy, CornerDownRight, AlertCircle, Clock, Check,
+  Copy, CornerDownRight, AlertCircle, Clock, Check,
   ChevronRight, Trophy, ChevronDown,
   BarChart2, Network
 } from 'lucide-react';
 
-// =========================================================================
-// 1. [CONSTANTS] 시스템 상수 및 디자인 토큰 계층
-// =========================================================================
 import CONFIG from './constants/config';
-
 import { COLORS, DESIGN_TOKENS } from './constants/colors';
-
 import TEMPLATES from './constants/templates';
-
-import INITIAL_MOCK_DATA from './constants/mockData';
-
-// =========================================================================
-// 2. [UTILITIES] 트리 연산 전담 엔진
-//    📌 투표 계산, 트리 탐색 로직 변경 → 이 블록만 수정
-// =========================================================================
 import TreeEngine from './utils/treeEngine';
+import useDecisionEngine from './hooks/useDecisionEngine';
 
-// =========================================================================
-// 3. [HOOKS] 상태 & 비즈니스 로직 전담 훅
-//    📌 데이터 저장/불러오기, 투표 처리 → 이 블록
-// =========================================================================
-function useDecisionEngine() {
-  const [view, setView]   = useState('home');
-  const [toast, setToast] = useState(null);
-  const [selectedId, setSelectedId] = useState(null);
-
-  const [decisions, setDecisions] = useState(() => {
-    try {
-      const saved = localStorage.getItem('df_claude_v1');
-      return saved ? JSON.parse(saved) : INITIAL_MOCK_DATA;
-    } catch { return INITIAL_MOCK_DATA; }
-  });
-
-  const [votedIds, setVotedIds] = useState(() => {
-    try {
-      const saved = localStorage.getItem('df_claude_voted_v1');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-
-  // 🔧 [성능 개선] try-catch로 JSON 오류 방어
-  useEffect(() => {
-    try {
-      localStorage.setItem('df_claude_v1',       JSON.stringify(decisions));
-      localStorage.setItem('df_claude_voted_v1', JSON.stringify(votedIds));
-    } catch (e) {
-      console.warn('localStorage 저장 실패:', e);
-    }
-  }, [decisions, votedIds]);
-
-  const showToast = useCallback((msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2000);
-  }, []);
-
-  // 🔧 [성능 개선] useCallback으로 불필요한 리렌더링 방지
-  const handlePublish = useCallback((data) => {
-    setDecisions(prev => [{
-      id: Date.now(),
-      title: data.title,
-      status: '진행중',
-      dDay: 'D-Day',
-      voters: 0,
-      options: data.options,
-      voteLogs: [],
-    }, ...prev]);
-    setView('home');
-    showToast('안건 트리가 발행되었습니다! 🎉');
-  }, [showToast]);
-
-  const handleVoteSubmit = useCallback((decisionId, optionId, userName) => {
-    setDecisions(prev => prev.map(d => {
-      if (d.id !== decisionId) return d;
-      return {
-        ...d,
-        voters: d.voters + 1,
-        options: d.options.map(o =>
-          o.id === optionId ? { ...o, voteCount: o.voteCount + 1 } : o
-        ),
-        voteLogs: [...(d.voteLogs || []),
-          { logId: Date.now(), userName, optionId }],
-      };
-    }));
-    setVotedIds(prev => [...prev, decisionId]);
-    showToast('투표가 완료되었습니다! ✨');
-  }, [showToast]);
-
-  const handleKickUser = useCallback((decisionId, logId, optionId) => {
-    setDecisions(prev => prev.map(d => {
-      if (d.id !== decisionId) return d;
-      return {
-        ...d,
-        voters: Math.max(0, d.voters - 1),
-        options: d.options.map(o =>
-          o.id === optionId
-            ? { ...o, voteCount: Math.max(0, o.voteCount - 1) }
-            : o
-        ),
-        voteLogs: d.voteLogs.filter(l => l.logId !== logId),
-      };
-    }));
-    showToast('해당 표가 무효화 되었습니다.');
-  }, [showToast]);
-
-  // 🔧 [성능 개선] useMemo로 매 렌더마다 find 중복 연산 방지
-  const currentDecision = useMemo(
-    () => decisions.find(d => d.id === selectedId),
-    [decisions, selectedId]
-  );
-  const hasVoted = useMemo(
-    () => votedIds.includes(selectedId),
-    [votedIds, selectedId]
-  );
-
-  return {
-    view, setView, toast, showToast,
-    selectedId, setSelectedId,
-    decisions, currentDecision, hasVoted,
-    handlePublish, handleVoteSubmit, handleKickUser,
-  };
-}
 
 // =========================================================================
 // 4. [COMMON COMPONENTS] 공통 원자 컴포넌트
 //    📌 Toast, 하단 네비, 모달 등 앱 전역에서 쓰이는 것들
 // =========================================================================
-const Toast = ({ message }) => {
-  if (!message) return null;
-  return (
-    <div className="absolute top-10 left-1/2 -translate-x-1/2 z-[60]">
-      <div className="bg-gray-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 font-bold text-sm whitespace-nowrap animate-in">
-        <CheckCircle2 className="w-5 h-5 text-[#B6FF33]" />
-        {message}
-      </div>
-    </div>
-  );
-};
+import Toast from './components/common/Toast';
 
 const BottomNav = ({ view, setView, showToast }) => {
   const items = [
