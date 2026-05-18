@@ -9,13 +9,8 @@ import {
 
 // =========================================================================
 // 1. [CONSTANTS] 시스템 상수 및 디자인 토큰 계층
-//    📌 색상, 규칙 등 변경이 필요할 때 → 이 블록만 수정하면 됩니다
 // =========================================================================
-const CONFIG = {
-  MAX_ROOT_NODES: 5,
-  MAX_CHILD_PER_NODE: 2,
-  MAX_DEPTH: 3,
-};
+import CONFIG from './constants/config';
 
 const COLORS = {
   primary: '#E8668A',
