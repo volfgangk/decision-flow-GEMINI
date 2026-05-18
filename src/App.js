@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  PlusCircle, Home, User, Bell, Settings, Zap,
+  PlusCircle, Zap,
   Users, X, ChevronLeft,
   Copy, CornerDownRight, AlertCircle, Clock, Check,
   ChevronRight, Trophy, ChevronDown,
@@ -20,73 +20,9 @@ import useDecisionEngine from './hooks/useDecisionEngine';
 // =========================================================================
 import Toast from './components/common/Toast';
 
-const BottomNav = ({ view, setView, showToast }) => {
-  const items = [
-    { id: 'home',     label: '홈',    Icon: Home     },
-    { id: 'profile',  label: '마이룸', Icon: User     },
-    { id: 'notice',   label: '알림',  Icon: Bell     },
-    { id: 'settings', label: '설정',  Icon: Settings },
-  ];
-  const isHomeActive = ['home','vote','minimap','visualmap','create'].includes(view);
+import BottomNav from './components/common/BottomNav';
 
-  return (
-    <nav className="absolute bottom-0 left-0 w-full bg-white border-t border-gray-100 flex justify-around items-center h-[76px] pb-2 z-20">
-      {items.map(({ id, label, Icon }) => {
-        const active = id === 'home' ? isHomeActive : view === id;
-        return (
-          <button
-            key={id}
-            onClick={() => id === 'home' ? setView('home') : showToast('준비 중인 메뉴입니다!')}
-            className={`flex flex-col items-center gap-1.5 w-16 transition-colors ${active ? 'text-[#E8668A]' : 'text-gray-400'}`}
-          >
-            <Icon className="w-6 h-6" />
-            <span className="text-[10px] font-black">{label}</span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-};
-
-const GuestModal = ({ onJoin }) => {
-  const [name, setName] = useState('');
-  return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md px-4">
-      <div className="bg-white rounded-[32px] w-full max-w-sm p-8 shadow-2xl animate-in text-center">
-        <div className="text-5xl mb-4">👋</div>
-        <h3 className="text-2xl font-black text-gray-900 mb-2">환영합니다!</h3>
-        <p className="text-sm text-gray-500 font-bold leading-relaxed mb-6 px-2">
-          결정에 힘을 실어줄<br/>이름을 적어주세요.
-        </p>
-        <input
-          type="text" maxLength={10} value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="예: 홍길동 (마케팅팀)"
-          className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-5 py-4 text-gray-900 font-black placeholder-gray-400 focus:outline-none focus:border-[#E8668A] transition-all text-center"
-        />
-        <div className="text-right text-[11px] text-gray-400 font-black mt-1 mb-4 pr-1">
-          {name.length}/10
-        </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-5">
-          <p className="text-[12px] text-gray-600 font-bold leading-relaxed">
-            🔒 건강한 의사결정을 위해 작성하신 정보는<br/>방장에게만 전달돼요.
-          </p>
-        </div>
-        <button
-          disabled={!name.trim()}
-          onClick={() => onJoin(name.trim())}
-          className={`w-full py-5 rounded-2xl font-black text-white text-lg transition-all ${
-            !name.trim()
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-[#E8668A] to-[#F4A067] active:scale-95'
-          }`}
-        >
-          선택지 확인하러 가기
-        </button>
-      </div>
-    </div>
-  );
-};
+import GuestModal from './components/common/GuestModal';
 
 const PopupModal = ({ node, onClose }) => (
   <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-5 animate-in" onClick={onClose}>
