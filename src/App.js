@@ -22,58 +22,7 @@ import INITIAL_MOCK_DATA from './constants/mockData';
 // 2. [UTILITIES] 트리 연산 전담 엔진
 //    📌 투표 계산, 트리 탐색 로직 변경 → 이 블록만 수정
 // =========================================================================
-const TreeEngine = {
-  getDepth: (id) => id.split('-').length,
-
-  isLeafNode: (options, id) =>
-    !options.some(o => o.id.startsWith(id + '-')),
-
-  getChildren: (options, parentId, targetDepth) =>
-    options.filter(
-      o => o.id.startsWith(parentId + '-') &&
-           o.id.split('-').length === targetDepth
-    ),
-
-  // 🔧 [성능 개선] Math.max 안전 처리 + 빈 배열 방어
-  computeWinningPaths: (options = [], totalVotes = 0) => {
-    const winSet = new Set();
-    if (totalVotes === 0 || options.length === 0) return winSet;
-
-    const leaves = options.filter(
-      o => !options.some(sub => sub.id.startsWith(o.id + '-'))
-    );
-    if (leaves.length === 0) return winSet;
-
-    const maxVotes = Math.max(0, ...leaves.map(o => o.voteCount || 0));
-    if (maxVotes === 0) return winSet;
-
-    leaves
-      .filter(o => (o.voteCount || 0) === maxVotes)
-      .forEach(leaf => {
-        let path = '';
-        leaf.id.split('-').forEach(part => {
-          path = path ? `${path}-${part}` : part;
-          winSet.add(path);
-        });
-      });
-
-    return winSet;
-  },
-
-  getRemainingTime: (deadline, dDay) => {
-    if (!deadline) {
-      if (dDay === 'D-Day') return '⏳ 5시간 42분 남음';
-      if (dDay === 'D-1')   return '⏳ 23시간 15분 남음';
-      return `⏳ ${dDay}`;
-    }
-    const diffMs = new Date(deadline) - new Date();
-    if (diffMs <= 0) return '⏳ 마감된 안건';
-    const hours = diffMs / 3_600_000;
-    return hours <= 24
-      ? `⏳ ${Math.floor(hours)}시간 ${Math.floor((diffMs % 3_600_000) / 60_000)}분 남음`
-      : `⏳ D-${Math.ceil(hours / 24)}`;
-  },
-};
+import TreeEngine from './utils/treeEngine';
 
 // =========================================================================
 // 3. [HOOKS] 상태 & 비즈니스 로직 전담 훅
