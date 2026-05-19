@@ -3,17 +3,19 @@
     "name": "Decision Flow",
     "description": "링크 하나로 함께 결정하세요",
     "icons": [
-      {
-        "src": "앱로고.jpg",
-        "sizes": "192x192",
-        "type": "image/jpeg"
-      },
-      {
-        "src": "앱로고.jpg",
-        "sizes": "512x512",
-        "type": "image/jpeg"
-      }
-    ],
+        {
+          "src": "앱로고.jpg",
+          "sizes": "192x192",
+          "type": "image/jpeg",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "앱로고.jpg",
+          "sizes": "512x512",
+          "type": "image/jpeg",
+          "purpose": "any maskable"
+        }
+      ],
     "start_url": ".",
     "display": "standalone",
     "theme_color": "#E8668A",

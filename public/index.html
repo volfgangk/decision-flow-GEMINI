@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#E8668A" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Decision Flow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -25,5 +26,14 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(reg) { console.log('SW registered'); })
+            .catch(function(err) { console.log('SW failed:', err); });
+        });
+      }
+    </script>
   </body>
 </html>
