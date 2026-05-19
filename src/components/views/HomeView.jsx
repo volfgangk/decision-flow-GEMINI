@@ -3,6 +3,36 @@ import { PlusCircle, Zap, Users, Clock } from 'lucide-react';
 import TEMPLATES from '../../constants/templates';
 
 const HomeView = ({ setView, showToast, decisions, onSelectId }) => {
+  const [installPrompt, setInstallPrompt] = React.useState(null);
+  const [showInstallModal, setShowInstallModal] = React.useState(false);
+  const [isIOS, setIsIOS] = React.useState(false);
+
+  React.useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    const ios = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    setIsIOS(ios);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleLogoClick = () => {
+    setShowInstallModal(true);
+  };
+
+  const handleInstallConfirm = async () => {
+    setShowInstallModal(false);
+    if (installPrompt) {
+      installPrompt.prompt();
+      const result = await installPrompt.userChoice;
+      if (result.outcome === 'accepted') {
+        showToast('홈 화면에 추가되었습니다! 🎉');
+      }
+      setInstallPrompt(null);
+    }
+  };
   const [activeTab, setActiveTab] = useState('created');
   const list = activeTab === 'created'
     ? decisions.filter(d => d.id !== 20001)
@@ -10,6 +40,42 @@ const HomeView = ({ setView, showToast, decisions, onSelectId }) => {
 
   return (
     <>
+    {showInstallModal && (
+  <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-5">
+    <div className="bg-white rounded-[28px] p-6 w-full max-w-xs shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="text-center mb-5">
+        <img src="/앱로고.jpg" className="w-16 h-16 rounded-2xl mx-auto mb-3 shadow-md" alt="logo" />
+        <h3 className="font-black text-gray-900 text-lg mb-1">홈 화면에 추가</h3>
+        {isIOS ? (
+          <p className="text-[13px] text-gray-500 font-bold leading-relaxed">
+            하단 공유 버튼(⬆️)을 누르고<br/>
+            <span className="text-[#E8668A]">"홈 화면에 추가"</span>를 선택해주세요.
+          </p>
+        ) : (
+          <p className="text-[13px] text-gray-500 font-bold leading-relaxed">
+            Decision Flow를 홈 화면에 추가하면<br/>앱처럼 바로 실행할 수 있어요!
+          </p>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowInstallModal(false)}
+          className="flex-1 py-3.5 rounded-2xl font-black text-gray-500 bg-gray-100 active:scale-95 transition-all"
+        >
+          취소
+        </button>
+        {!isIOS && (
+          <button
+            onClick={handleInstallConfirm}
+            className="flex-1 py-3.5 rounded-2xl font-black text-white bg-gradient-to-r from-[#E8668A] to-[#F4A067] active:scale-95 transition-all shadow-lg"
+          >
+            홈에 추가
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
       <header className="px-6 pt-3.5 pb-0.5 bg-white shrink-0">
         <h1 className="text-xl font-black text-gray-900 tracking-tighter flex items-center gap-2">
           Decision Flow
@@ -19,9 +85,12 @@ const HomeView = ({ setView, showToast, decisions, onSelectId }) => {
         </h1>
       </header>
       <main className="flex-1 px-5 pb-24 overflow-y-auto bg-white flex flex-col">
-        <div className="flex justify-center mb-3 mt-0.5 h-14 shrink-0">
-          <img src="/앱로고.jpg" alt="Logo" className="h-full w-auto object-contain mix-blend-multiply" onError={e => { e.target.style.display = 'none'; }} />
-        </div>
+      <div className="flex flex-col items-center mb-3 mt-0.5 shrink-0 cursor-pointer" onClick={handleLogoClick}>
+  <img src="/앱로고.jpg" className="h-14 object-contain" onError={e => e.target.style.display='none'} alt="logo" />
+  <div className="flex items-center gap-1 mt-1">
+    <span className="text-[10px] text-gray-300 font-bold">↑ 클릭하면 홈 화면에 추가됩니다</span>
+  </div>
+</div>
         <section className="mb-3.5 relative shrink-0">
           <div className="absolute inset-0 border-2 border-[#a8ff35] rounded-2xl animate-pulse shadow-[0_0_12px_rgba(168,255,53,0.4)] -z-10" />
           <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-3.5 border border-white">
