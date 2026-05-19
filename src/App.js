@@ -80,6 +80,7 @@ export default function App() {
   />
 )}
         <BottomNav view={engine.view} setView={engine.setView} />
+        <Toast message={engine.toast} />
       </div>
     </div>
   );
