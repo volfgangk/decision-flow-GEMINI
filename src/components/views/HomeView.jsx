@@ -31,7 +31,7 @@ const HomeView = ({ setView, showToast, decisions, onSelectId }) => {
             </div>
             <div className="grid grid-cols-2 gap-1.5">
               {TEMPLATES.map(tpl => (
-                <button key={tpl.id} onClick={() => showToast('준비중입니다.')} className={`${tpl.bgColor} bg-opacity-60 p-2 rounded-xl flex items-center gap-2.5 active:scale-95 transition-all`}>
+                <button key={tpl.id} onClick={() => showToast('🔜 다음 업데이트에서 만나요!')} className={`${tpl.bgColor} bg-opacity-60 p-2 rounded-xl flex items-center gap-2.5 active:scale-95 transition-all`}>
                   <div className="p-1 bg-white rounded-md shadow-sm shrink-0">{tpl.icon}</div>
                   <span className="font-bold text-gray-800 text-[12px] truncate">{tpl.title}</span>
                 </button>
