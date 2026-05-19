@@ -5,10 +5,10 @@
 // ================================================
 
 import React, { useMemo } from 'react';
-import { ChevronLeft, Trophy, FileText, Users, CheckCircle2, Clock } from 'lucide-react';
+import { ChevronLeft, Trophy, FileText, Users, CheckCircle2, Clock, X } from 'lucide-react';
 
-const MyRoomView = ({ setView, decisions, votedIds, onSelectId }) => {
-
+const MyRoomView = ({ setView, decisions, votedIds, onSelectId, onDelete }) => {
+  const MOCK_IDS = [10001, 10002, 20001]; // 삭제 불가 목업 데이터
   // 📊 통계 계산 (localStorage 데이터 기반)
   const stats = useMemo(() => {
     const myDecisions = decisions.filter(d => d.id !== 20001);
@@ -168,35 +168,53 @@ const MyRoomView = ({ setView, decisions, votedIds, onSelectId }) => {
               내가 만든 안건 ({myDecisions.length})
             </h3>
             <div className="space-y-2">
-              {myDecisions.map(item => (
-                <div
-                  key={item.id}
-                  onClick={() => setView('vote')}
-                  className="bg-white border border-gray-100 rounded-xl p-3.5 shadow-sm cursor-pointer active:scale-[0.99] transition-all"
-                >
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="bg-pink-50 text-[#E8668A] text-[9px] font-black px-1.5 py-0.5 rounded uppercase">
-                      {item.status}
-                    </span>
-                    <div className="flex items-center gap-1 text-gray-400">
-                      <Clock className="w-3 h-3" />
-                      <span className="text-[10px] font-bold">{item.dDay}</span>
-                    </div>
-                  </div>
-                  <p className="text-[13px] font-black text-gray-800 mb-1 break-keep leading-tight">
-                    {item.title}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-gray-400">
-                      <Users className="w-3 h-3" />
-                      <span className="text-[10px] font-medium">{item.voters}명 참여</span>
-                    </div>
-                    <span className="text-[10px] text-[#8CB82D] font-black">
-                      {item.options?.length || 0}개 선택지
-                    </span>
-                  </div>
-                </div>
-              ))}
+            {myDecisions.map(item => (
+  <div
+    key={item.id}
+    className="bg-white border border-gray-100 rounded-xl p-3.5 shadow-sm transition-all"
+  >
+    <div className="flex justify-between items-center mb-1">
+      <span className="bg-pink-50 text-[#E8668A] text-[9px] font-black px-1.5 py-0.5 rounded uppercase">
+        {item.status}
+      </span>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 text-gray-400">
+          <Clock className="w-3 h-3" />
+          <span className="text-[10px] font-bold">{item.dDay}</span>
+        </div>
+        {!MOCK_IDS.includes(item.id) && (
+          <button
+            onClick={() => {
+              if (window.confirm(`"${item.title.substring(0,20)}..." 삭제하시겠습니까?`)) {
+                onDelete(item.id);
+              }
+            }}
+            className="w-6 h-6 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-400 rounded-lg transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+    </div>
+    <div
+      onClick={() => onSelectId(item.id)}
+      className="cursor-pointer active:scale-[0.99]"
+    >
+      <p className="text-[13px] font-black text-gray-800 mb-1 break-keep leading-tight">
+        {item.title}
+      </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 text-gray-400">
+          <Users className="w-3 h-3" />
+          <span className="text-[10px] font-medium">{item.voters}명 참여</span>
+        </div>
+        <span className="text-[10px] text-[#8CB82D] font-black">
+          {item.options?.length || 0}개 선택지
+        </span>
+      </div>
+    </div>
+  </div>
+))}
             </div>
           </div>
         )}

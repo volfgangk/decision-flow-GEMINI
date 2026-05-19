@@ -64,6 +64,7 @@ export default function App() {
     decisions={engine.decisions}
     votedIds={engine.votedIds || []}
     onSelectId={id => { engine.setSelectedId(id); engine.setView('vote'); }}
+    onDelete={engine.handleDeleteDecision}
   />
 )}
 {engine.view === 'notifications' && (

@@ -99,14 +99,17 @@ function useDecisionEngine() {
     () => votedIds.includes(selectedId),
     [votedIds, selectedId]
   );
-
+  const handleDeleteDecision = useCallback((decisionId) => {
+    setDecisions(prev => prev.filter(d => d.id !== decisionId));
+    showToast('안건이 삭제되었습니다.');
+  }, [showToast]);
   return {
     view, setView,
     toast, showToast,
     selectedId, setSelectedId,
     decisions, votedIds,
     currentDecision, hasVoted,
-    handlePublish, handleVoteSubmit, handleKickUser,
+    handlePublish, handleVoteSubmit, handleKickUser, handleDeleteDecision,
   };
 }
 
