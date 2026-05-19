@@ -125,9 +125,16 @@ const MinimapView = ({ decision, setView }) => {
           <button onClick={() => setView('home')} className="flex-1 bg-white border border-gray-200 text-gray-600 rounded-2xl py-3.5 font-black text-[11px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all">
             <Home className="w-5 h-5 text-gray-400" /> 홈으로
           </button>
-          <button onClick={() => window.alert('공유 링크가 복사되었습니다! ✨')} className="flex-1 bg-orange-50 border border-orange-100 text-[#F4A067] rounded-2xl py-3.5 font-black text-[11px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all">
-            <Copy className="w-5 h-5 text-[#F4A067]" /> 공유하기
-          </button>
+          <button
+  onClick={() => {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => alert('링크가 복사되었습니다! ✨'))
+      .catch(() => alert('링크: ' + window.location.href));
+  }}
+  className="flex-1 bg-orange-50 border border-orange-100 text-[#F4A067] rounded-2xl py-3.5 font-black text-[11px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all"
+>
+  <Copy className="w-5 h-5 text-[#F4A067]" /> 공유하기
+</button>
           <button onClick={() => setView('visualmap')} className="flex-[1.4] bg-[#FFF0F3] border-2 border-[#E8668A]/40 text-[#E8668A] rounded-2xl py-3.5 font-black text-[12px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all">
             <Network className="w-5 h-5 text-[#E8668A]" /> 트리맵 전환
           </button>

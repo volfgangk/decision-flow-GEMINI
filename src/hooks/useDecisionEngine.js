@@ -50,12 +50,13 @@ function useDecisionEngine() {
       voters: 0,
       options: data.options,
       voteLogs: [],
+      earlyCloseRate: data.earlyCloseRate || 70,
     }, ...prev]);
     setView('home');
     showToast('안건 트리가 발행되었습니다! 🎉');
   }, [showToast]);
 
-  const handleVoteSubmit = useCallback((decisionId, optionId, userName) => {
+  const handleVoteSubmit = useCallback((decisionId, optionId, userName, persona) => {
     setDecisions(prev => prev.map(d => {
       if (d.id !== decisionId) return d;
       return {
@@ -65,7 +66,7 @@ function useDecisionEngine() {
           o.id === optionId ? { ...o, voteCount: o.voteCount + 1 } : o
         ),
         voteLogs: [...(d.voteLogs || []),
-          { logId: Date.now(), userName, optionId }],
+  { logId: Date.now(), userName, optionId, persona }],
       };
     }));
     setVotedIds(prev => [...prev, decisionId]);
@@ -103,12 +104,9 @@ function useDecisionEngine() {
     view, setView,
     toast, showToast,
     selectedId, setSelectedId,
-    decisions,
-    currentDecision,
-    hasVoted,
-    handlePublish,
-    handleVoteSubmit,
-    handleKickUser,
+    decisions, votedIds,
+    currentDecision, hasVoted,
+    handlePublish, handleVoteSubmit, handleKickUser,
   };
 }
 

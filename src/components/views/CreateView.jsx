@@ -17,6 +17,7 @@ const CreateView = ({ setView, onPublish }) => {
     { id: '2', text: '', voteCount: 0 },
   ]);
   const [showErr, setShowErr] = useState(false);
+  const [earlyCloseRate, setEarlyCloseRate] = useState(70);
 
   useEffect(() => {
     const d = new Date(Date.now() + 86_400_000);
@@ -122,6 +123,36 @@ const CreateView = ({ setView, onPublish }) => {
 
         {/* 마감 기한 */}
         <div>
+        {/* 조기 마감 트리거 */}
+<div>
+  <label className="text-xs font-black text-gray-400 uppercase tracking-widest block mb-3">
+    조기 마감 가능 투표율
+  </label>
+  <p className="text-[11px] text-gray-400 font-bold mb-3 leading-relaxed">
+    설정한 투표율 달성 시 생성자에게 알림이 가고<br/>조기 마감 여부를 선택할 수 있습니다.
+  </p>
+  <div className="flex gap-2">
+    {[50, 60, 70, 80, 90, 100].map(rate => (
+      <button
+        key={rate}
+        type="button"
+        onClick={() => setEarlyCloseRate(rate)}
+        className={`flex-1 py-2.5 rounded-xl text-[11px] font-black transition-all ${
+          earlyCloseRate === rate
+            ? 'bg-[#E8668A] text-white shadow-md'
+            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+        }`}
+      >
+        {rate}%
+      </button>
+    ))}
+  </div>
+  {earlyCloseRate === 100 && (
+    <p className="text-[11px] text-[#4A648A] font-bold mt-2">
+      💡 100% = 모든 참여자 투표 완료 시에만 마감 가능
+    </p>
+  )}
+</div>
           <label className="text-xs font-black text-gray-400 uppercase tracking-widest block mb-2">마감 기한 설정</label>
           <input
             type="datetime-local" value={deadline}
@@ -136,7 +167,7 @@ const CreateView = ({ setView, onPublish }) => {
           onClick={() => {
             const validRoots = opts.filter(o => !o.id.includes('-') && o.text.trim());
             if (!title.trim() || validRoots.length < 2) { setShowErr(true); return; }
-            onPublish({ title, options: opts.filter(o => o.text.trim()) });
+            onPublish({ title, options: opts.filter(o => o.text.trim()), earlyCloseRate });
           }}
           className="w-full bg-gradient-to-r from-[#E8668A] to-[#F4A067] text-white rounded-2xl py-4 font-black shadow-xl pointer-events-auto active:scale-95 transition-all text-lg"
         >

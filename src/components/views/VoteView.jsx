@@ -16,7 +16,8 @@ import GuestModal from '../common/GuestModal';
 const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmin, onKick }) => {
   const [selectedId, setSelectedId] = useState(null);
   const [showGuest, setShowGuest]   = useState(!isAdmin && !hasVoted);
-  const [userName, setUserName]     = useState(isAdmin ? '방장' : '');
+  const [userName, setUserName]   = useState(isAdmin ? '방장' : '');
+  const [userPersona, setUserPersona] = useState(null);
 
   const winningPaths = useMemo(
     () => TreeEngine.computeWinningPaths(decision.options, decision.voters),
@@ -36,7 +37,14 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
   return (
     <>
       {showGuest && (
-        <GuestModal onJoin={name => { setUserName(name); setShowGuest(false); }} />
+        <GuestModal
+        onJoin={(name, persona) => {
+          setUserName(name);
+          setUserPersona(persona);
+          setShowGuest(false);
+        }}
+        onClose={() => setView('home')}
+      />
       )}
       <header className="px-4 py-4 bg-white border-b border-gray-100 flex items-center justify-between shrink-0">
         <button onClick={() => setView('home')} className="p-2 hover:bg-gray-100 rounded-full">
@@ -45,9 +53,26 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
         <h1 className="font-black text-base text-gray-900 truncate max-w-[240px] text-center">
           {decision.title}
         </h1>
-        <button onClick={() => showToast('참여자용 투표 링크가 복사되었습니다! ✨')} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
-          <Copy className="w-5 h-5" />
-        </button>
+        <button
+  onClick={() => {
+    const url = window.location.href;
+    try {
+      navigator.clipboard.writeText(url);
+      showToast('투표 링크가 복사되었습니다! ✨');
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showToast('투표 링크가 복사되었습니다! ✨');
+    }
+  }}
+  className="p-2 hover:bg-gray-100 rounded-full text-gray-500"
+>
+  <Copy className="w-5 h-5" />
+</button>
       </header>
 
       <main className={`flex-1 px-5 pt-4 overflow-y-auto bg-gray-50 ${isAdmin ? 'pb-56' : 'pb-40'}`}>
@@ -216,7 +241,9 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
                 ? decision.voteLogs.map((log, i) => (
                     <div key={i} className="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-xl p-3">
                       <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-gray-900 text-[13px]">{log.userName}</span>
+                      <span className="font-bold text-gray-900 text-[13px]">
+  {log.persona?.emoji || '👤'} {log.userName}
+</span>
                         <span className="font-medium text-gray-500 text-[11px] truncate max-w-[200px]">
                           선택: {decision.options.find(o => o.id === log.optionId)?.text || log.optionId}
                         </span>
@@ -237,23 +264,50 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
       </main>
 
       <div className={`absolute bottom-[76px] left-0 w-full px-6 pb-6 bg-gradient-to-t from-white via-white/90 to-transparent z-10 ${isAdmin ? 'pt-6' : 'pt-10'}`}>
-        {isAdmin ? (
-          <button onClick={() => setView('minimap')} className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white rounded-2xl py-4 font-black shadow-xl active:scale-95 transition-all text-lg">
-            투표 강제 조기 마감하기
-          </button>
+      {isAdmin ? (
+  <div className="space-y-2">
+    {decision.earlyCloseRate && decision.voters > 0 && (
+      <div className={`rounded-2xl p-3 text-center border ${
+        decision.voters >= Math.ceil(decision.earlyCloseRate / 10)
+          ? 'bg-[#FAFFEB] border-[#B6FF33]/60'
+          : 'bg-gray-50 border-gray-200'
+      }`}>
+        {decision.voters >= Math.ceil(decision.earlyCloseRate / 10) ? (
+          <>
+            <p className="text-[12px] font-black text-[#8CB82D]">
+              🎯 목표 투표율 {decision.earlyCloseRate}% 달성!
+            </p>
+            <p className="text-[11px] text-gray-500 font-bold mt-0.5">
+              지금 마감하시겠습니까?
+            </p>
+          </>
+        ) : (
+          <p className="text-[11px] font-black text-gray-400">
+            조기 마감 기준: {decision.earlyCloseRate}% | 현재: {decision.voters}명 참여
+          </p>
+        )}
+      </div>
+    )}
+    <button
+      onClick={() => setView('minimap')}
+      className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white rounded-2xl py-4 font-black shadow-xl active:scale-95 transition-all text-lg"
+    >
+      투표 강제 조기 마감하기
+    </button>
+  </div>
         ) : hasVoted ? (
           <div className="flex gap-2">
             <button onClick={() => setView('minimap')} className="flex-1 bg-white border-2 border-[#D2DFEE] text-[#4A648A] rounded-2xl py-4 font-black shadow-sm active:scale-95 transition-all text-[13px] flex items-center justify-center gap-1.5">
               <BarChart2 className="w-4 h-4" /> 리스트 뷰
             </button>
             <button onClick={() => setView('visualmap')} className="flex-1 bg-[#FFF0F3] border-2 border-[#FCD9E1] text-[#E8668A] rounded-2xl py-4 font-black shadow-sm active:scale-95 transition-all text-[13px] flex items-center justify-center gap-1.5">
-              <Network className="w-4 h-4" /> 비주얼 트리
+  <Network className="w-4 h-4" /> 비주얼 트리
             </button>
           </div>
         ) : (
           <button
             disabled={!selectedId}
-            onClick={() => selectedId && onVoteSubmit(decision.id, selectedId, userName)}
+            onClick={() => selectedId && onVoteSubmit(decision.id, selectedId, userName, userPersona)}
             className={`w-full rounded-2xl py-5 font-black shadow-xl transition-all text-lg ${
               !selectedId ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-[#E8668A] to-[#F4A067] text-white active:scale-95'
             }`}

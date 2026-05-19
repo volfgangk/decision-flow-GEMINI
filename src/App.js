@@ -11,11 +11,16 @@ import HomeView from './components/views/HomeView';
 import CreateView from './components/views/CreateView';
 import VoteView from './components/views/VoteView';
 
+
 // ── MINIMAP VIEW ───────────────────────────────────────────────────────────
 import MinimapView from './components/views/MinimapView';
 
 // ── VISUAL MAP VIEW ────────────────────────────────────────────────────────
 import VisualMapView from './components/views/VisualMapView';
+import MyRoomView from './components/views/MyRoomView';
+import NotificationView from './components/views/NotificationView';
+import SettingsView from './components/views/SettingsView';
+
 
 // ── APP (메인 라우터) ──────────────────────────────────────────────────────
 export default function App() {
@@ -51,10 +56,30 @@ export default function App() {
           <MinimapView decision={engine.currentDecision} setView={engine.setView} />
         )}
         {engine.view === 'visualmap' && engine.currentDecision && (
-          <VisualMapView decision={engine.currentDecision} setView={engine.setView} />
-        )}
-        <BottomNav view={engine.view} setView={engine.setView} showToast={engine.showToast} />
-        <Toast message={engine.toast} />
+  <VisualMapView decision={engine.currentDecision} setView={engine.setView} />
+)}
+        {engine.view === 'myroom' && (
+  <MyRoomView
+    setView={engine.setView}
+    decisions={engine.decisions}
+    votedIds={engine.votedIds || []}
+    onSelectId={id => { engine.setSelectedId(id); engine.setView('vote'); }}
+  />
+)}
+{engine.view === 'notifications' && (
+  <NotificationView
+    setView={engine.setView}
+    decisions={engine.decisions}
+    votedIds={engine.votedIds || []}
+  />
+)}
+{engine.view === 'settings' && (
+  <SettingsView
+    setView={engine.setView}
+    showToast={engine.showToast}
+  />
+)}
+        <BottomNav view={engine.view} setView={engine.setView} />
       </div>
     </div>
   );

@@ -1,9 +1,3 @@
-// ================================================
-// 📌 VisualMapView.jsx — 비주얼 트리맵 화면
-// 이 파일이 하는 일: 투표 결과를 트리 구조로 시각화
-// 수정할 일: 트리맵 디자인 변경 시
-// ================================================
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, Copy, ChevronDown, BarChart2, Network, Home } from 'lucide-react';
 import TreeEngine from '../../utils/treeEngine';
@@ -92,9 +86,7 @@ const VisualMapView = ({ decision, setView }) => {
                 onClick={e => toggleExpand(node.id, e)}
                 className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all ${
                   isExpanded
-                    ? isWinner
-                      ? 'bg-[#E8668A] border-[#E8668A] text-white rotate-180'
-                      : 'bg-gray-200 border-gray-200 text-gray-500 rotate-180'
+                    ? isWinner ? 'bg-[#E8668A] border-[#E8668A] text-white rotate-180' : 'bg-gray-200 border-gray-200 text-gray-500 rotate-180'
                     : 'bg-white border-gray-200 text-gray-400'
                 }`}
               >
@@ -118,9 +110,7 @@ const VisualMapView = ({ decision, setView }) => {
     <>
       <div className="flex flex-col h-full bg-[#F8F9FB]">
         <header className="px-4 py-3 bg-white border-b border-gray-100 flex items-center justify-between shrink-0">
-          <button onClick={() => setView('vote')} className="p-2 hover:bg-gray-100 rounded-full">
-            <ChevronLeft />
-          </button>
+          <button onClick={() => setView('vote')} className="p-2 hover:bg-gray-100 rounded-full"><ChevronLeft /></button>
           <div className="flex flex-col items-center">
             <span className="text-[9px] font-black text-[#E8668A] tracking-[0.2em]">VISUAL TREEMAP</span>
             <h1 className="font-black text-base text-gray-900">비주얼 트리맵</h1>
@@ -145,9 +135,16 @@ const VisualMapView = ({ decision, setView }) => {
           <button onClick={() => setView('home')} className="flex-1 bg-white border border-gray-200 text-gray-600 rounded-2xl py-3.5 font-black text-[11px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all">
             <Home className="w-5 h-5 text-gray-400" /> 홈으로
           </button>
-          <button onClick={() => window.alert('공유 링크가 복사되었습니다! ✨')} className="flex-1 bg-orange-50 border border-orange-100 text-[#F4A067] rounded-2xl py-3.5 font-black text-[11px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all">
-            <Copy className="w-5 h-5 text-[#F4A067]" /> 공유하기
-          </button>
+          <button
+  onClick={() => {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => alert('링크가 복사되었습니다! ✨'))
+      .catch(() => alert('링크: ' + window.location.href));
+  }}
+  className="flex-1 bg-orange-50 border border-orange-100 text-[#F4A067] rounded-2xl py-3.5 font-black text-[11px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all"
+>
+  <Copy className="w-5 h-5 text-[#F4A067]" /> 공유하기
+</button>
           <button onClick={() => setView('minimap')} className="flex-[1.4] bg-white border-2 border-[#D2DFEE] text-[#4A648A] rounded-2xl py-3.5 font-black text-[12px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all">
             <BarChart2 className="w-5 h-5 text-[#4A648A]" /> 리스트 전환
           </button>
