@@ -23,14 +23,17 @@ const HomeView = ({ setView, showToast, decisions, onSelectId }) => {
   };
 
   const handleInstallConfirm = async () => {
-    setShowInstallModal(false);
     if (installPrompt) {
+      setShowInstallModal(false);
       installPrompt.prompt();
       const result = await installPrompt.userChoice;
       if (result.outcome === 'accepted') {
         showToast('홈 화면에 추가되었습니다! 🎉');
       }
       setInstallPrompt(null);
+    } else {
+      setShowInstallModal(false);
+      showToast('브라우저 메뉴 → 홈 화면에 추가를 눌러주세요!');
     }
   };
   const [activeTab, setActiveTab] = useState('created');
@@ -47,15 +50,24 @@ const HomeView = ({ setView, showToast, decisions, onSelectId }) => {
         <img src="/앱로고.jpg" className="w-16 h-16 rounded-2xl mx-auto mb-3 shadow-md" alt="logo" />
         <h3 className="font-black text-gray-900 text-lg mb-1">홈 화면에 추가</h3>
         {isIOS ? (
-          <p className="text-[13px] text-gray-500 font-bold leading-relaxed">
-            하단 공유 버튼(⬆️)을 누르고<br/>
-            <span className="text-[#E8668A]">"홈 화면에 추가"</span>를 선택해주세요.
-          </p>
-        ) : (
-          <p className="text-[13px] text-gray-500 font-bold leading-relaxed">
-            Decision Flow를 홈 화면에 추가하면<br/>앱처럼 바로 실행할 수 있어요!
-          </p>
-        )}
+  <div className="text-left bg-gray-50 rounded-2xl p-4 space-y-2">
+    <p className="text-[12px] font-black text-gray-600">📱 iPhone 설치 방법</p>
+    <p className="text-[12px] text-gray-500 font-bold leading-relaxed">
+      1. 하단 공유 버튼 <span className="text-[#E8668A]">⬆️</span> 클릭<br/>
+      2. <span className="text-[#E8668A]">"홈 화면에 추가"</span> 선택<br/>
+      3. 우측 상단 <span className="text-[#E8668A]">"추가"</span> 클릭
+    </p>
+  </div>
+) : (
+  <div className="text-left bg-gray-50 rounded-2xl p-4 space-y-2">
+    <p className="text-[12px] font-black text-gray-600">📱 Android 설치 방법</p>
+    <p className="text-[12px] text-gray-500 font-bold leading-relaxed">
+      1. 크롬 우측 상단 <span className="text-[#E8668A]">⋮</span> 클릭<br/>
+      2. <span className="text-[#E8668A]">"홈 화면에 추가"</span> 선택<br/>
+      3. <span className="text-[#E8668A]">"추가"</span> 클릭
+    </p>
+  </div>
+)}
       </div>
       <div className="flex gap-2">
         <button
@@ -64,14 +76,12 @@ const HomeView = ({ setView, showToast, decisions, onSelectId }) => {
         >
           취소
         </button>
-        {!isIOS && (
-          <button
-            onClick={handleInstallConfirm}
-            className="flex-1 py-3.5 rounded-2xl font-black text-white bg-gradient-to-r from-[#E8668A] to-[#F4A067] active:scale-95 transition-all shadow-lg"
-          >
-            홈에 추가
-          </button>
-        )}
+        <button
+  onClick={handleInstallConfirm}
+  className="flex-1 py-3.5 rounded-2xl font-black text-white bg-gradient-to-r from-[#E8668A] to-[#F4A067] active:scale-95 transition-all shadow-lg"
+>
+  확인
+</button>
       </div>
     </div>
   </div>
