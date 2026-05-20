@@ -55,18 +55,23 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
         </h1>
         <button
   onClick={() => {
-    const url = window.location.href;
     try {
-      navigator.clipboard.writeText(url);
-      showToast('투표 링크가 복사되었습니다! ✨');
+      const json = JSON.stringify(decision);
+      const encoded = encodeURIComponent(json);
+      const url = `${window.location.origin}?d=${encoded}`;
+      navigator.clipboard.writeText(url)
+        .then(() => showToast('투표 링크가 복사되었습니다! ✨'))
+        .catch(() => {
+          const el = document.createElement('textarea');
+          el.value = url;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+          showToast('투표 링크가 복사되었습니다! ✨');
+        });
     } catch {
-      const el = document.createElement('textarea');
-      el.value = url;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      showToast('투표 링크가 복사되었습니다! ✨');
+      showToast('링크 복사에 실패했습니다.');
     }
   }}
   className="p-2 hover:bg-gray-100 rounded-full text-gray-500"

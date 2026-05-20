@@ -26,7 +26,24 @@ function useDecisionEngine() {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
-
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const encoded = params.get('d');
+      if (!encoded) return;
+      const sharedDecision = JSON.parse(decodeURIComponent(encoded));
+      if (!sharedDecision || !sharedDecision.id) return;
+      setDecisions(prev => {
+        if (prev.find(d => d.id === sharedDecision.id)) return prev;
+        return [sharedDecision, ...prev];
+      });
+      setSelectedId(sharedDecision.id);
+      setView('vote');
+      window.history.replaceState({}, '', window.location.pathname);
+    } catch {
+      // 파싱 실패 시 무시
+    }
+  }, []);
   useEffect(() => {
     try {
       localStorage.setItem('df_claude_v1',       JSON.stringify(decisions));

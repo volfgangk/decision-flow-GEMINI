@@ -137,9 +137,16 @@ const VisualMapView = ({ decision, setView }) => {
           </button>
           <button
   onClick={() => {
-    navigator.clipboard.writeText(window.location.href)
-      .then(() => alert('링크가 복사되었습니다! ✨'))
-      .catch(() => alert('링크: ' + window.location.href));
+    try {
+      const json = JSON.stringify(decision);
+      const encoded = encodeURIComponent(json);
+      const url = `${window.location.origin}?d=${encoded}`;
+      navigator.clipboard.writeText(url)
+        .then(() => alert('링크가 복사되었습니다! ✨'))
+        .catch(() => alert('링크: ' + url));
+    } catch {
+      alert('링크 복사에 실패했습니다.');
+    }
   }}
   className="flex-1 bg-orange-50 border border-orange-100 text-[#F4A067] rounded-2xl py-3.5 font-black text-[11px] flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all"
 >
