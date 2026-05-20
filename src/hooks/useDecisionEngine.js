@@ -41,7 +41,7 @@ function useDecisionEngine() {
       setView('vote');
       window.history.replaceState({}, '', window.location.pathname);
     } catch {
-      // 파싱 실패 시 무시
+      // 파싱 실패 시 무시git commit --allow-empty -m "chore: force redeploy"
     }
   }, []);
   useEffect(() => {
