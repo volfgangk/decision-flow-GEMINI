@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 
 import { DESIGN_TOKENS } from './constants/colors';
@@ -11,28 +11,65 @@ import HomeView from './components/views/HomeView';
 import CreateView from './components/views/CreateView';
 import VoteView from './components/views/VoteView';
 
-// ── 추가된 인증 훅 ──────────────────────────────────────────────────────────
+// 인증 훅
 import { useFirebaseAuth } from './hooks/useFirebaseAuth';
+// 백엔드 파이프라인 훅 (PRD v2.1)
+import { useTeam } from './hooks/useTeam';
+import { useAgenda } from './hooks/useAgenda';
 
-// ── MINIMAP VIEW ───────────────────────────────────────────────────────────
+// 마법의 팝업 (PRD v2.1)
+import PublishModal from './components/common/PublishModal';
+
 import MinimapView from './components/views/MinimapView';
-
-// ── VISUAL MAP VIEW ────────────────────────────────────────────────────────
 import VisualMapView from './components/views/VisualMapView';
 import MyRoomView from './components/views/MyRoomView';
 import NotificationView from './components/views/NotificationView';
 import SettingsView from './components/views/SettingsView';
 
-// ── APP (메인 라우터) ──────────────────────────────────────────────────────
 export default function App() {
   const engine  = useDecisionEngine();
   const isAdmin = new URLSearchParams(window.location.search).get('token') === 'admin';
   
-  // 파이어베이스 익명 인증 상태 호출
-  const { authUser, isLoading, error } = useFirebaseAuth();
+  const { authUser, isLoading: isAuthLoading, error } = useFirebaseAuth();
 
-  // 1. 로딩 상태 처리 (기존 UI 래퍼와 동일한 규격 적용)
-  if (isLoading) {
+  // ── [PRD v2.1] 배선 상태 관리 ──
+  // 🚨 교정 포인트: 팀 생성 로딩 상태(isTeamLoading) 추가 추출
+  const { createTeam, isLoading: isTeamLoading } = useTeam();
+  const { createAgenda, isAgendaLoading } = useAgenda();
+  
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [draftAgenda, setDraftAgenda] = useState(null);
+
+  // ── [PRD v2.1] CreateView에서 [의견모으기 시작]을 눌렀을 때 ──
+  const handlePublishClick = (agendaData) => {
+    setDraftAgenda(agendaData);
+    setIsPublishModalOpen(true);
+  };
+
+  // ── [PRD v2.1] 마법의 팝업에서 확인을 눌렀을 때 ──
+  const handlePublishConfirm = async (userName, teamName) => {
+    try {
+      // 1. 팀 먼저 생성 (이때 isTeamLoading이 true가 됨)
+      const newTeam = await createTeam(teamName, userName);
+      
+      // 2. 안건을 해당 팀 안으로 귀속하여 생성 (이때 isAgendaLoading이 true가 됨)
+      await createAgenda(newTeam.team_id, draftAgenda);
+      
+      // 3. 팝업 닫고 청소
+      setIsPublishModalOpen(false);
+      setDraftAgenda(null);
+      engine.showToast('성공적으로 발행되었습니다! 🎉');
+      
+      // 4. 완료 후 홈 화면으로 이동
+      engine.setView('home');
+
+    } catch (err) {
+      console.error("통합 발행 에러:", err);
+      engine.showToast('발행 중 문제가 발생했습니다.');
+    }
+  };
+
+  if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex justify-center items-center font-sans">
         <div className="w-full max-w-md bg-white h-[850px] max-h-screen relative shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col justify-center items-center">
@@ -43,7 +80,6 @@ export default function App() {
     );
   }
 
-  // 2. 에러 상태 처리
   if (error) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex justify-center items-center font-sans">
@@ -55,10 +91,10 @@ export default function App() {
     );
   }
 
-  // 3. 정상 렌더링 (인증 완료 후 기존 구조 노출)
   return (
     <div className="min-h-screen bg-[#F8F9FB] flex justify-center items-center font-sans">
       <div className="w-full max-w-md bg-white h-[850px] max-h-screen relative shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col">
+        
         {engine.view === 'home' && (
           <HomeView
             setView={engine.setView}
@@ -67,9 +103,11 @@ export default function App() {
             onSelectId={id => { engine.setSelectedId(id); engine.setView('vote'); }}
           />
         )}
+        
         {engine.view === 'create' && (
-          <CreateView setView={engine.setView} onPublish={engine.handlePublish} />
+          <CreateView setView={engine.setView} onPublish={handlePublishClick} />
         )}
+        
         {engine.view === 'vote' && engine.currentDecision && (
           <VoteView
             decision={engine.currentDecision}
@@ -81,6 +119,7 @@ export default function App() {
             onKick={engine.handleKickUser}
           />
         )}
+        
         {engine.view === 'minimap' && engine.currentDecision && (
           <MinimapView decision={engine.currentDecision} setView={engine.setView} />
         )}
@@ -111,6 +150,15 @@ export default function App() {
         )}
         <BottomNav view={engine.view} setView={engine.setView} />
         <Toast message={engine.toast} />
+
+        {/* 🚨 교정 포인트: 팀 생성 중이거나 안건 생성 중일 때 모두 버튼을 비활성화합니다 */}
+        <PublishModal 
+          isOpen={isPublishModalOpen}
+          onClose={() => setIsPublishModalOpen(false)}
+          onConfirm={handlePublishConfirm}
+          isPublishing={isTeamLoading || isAgendaLoading} 
+        />
+        
       </div>
     </div>
   );
