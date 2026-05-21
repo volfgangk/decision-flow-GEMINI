@@ -1,13 +1,13 @@
 // ================================================
-// 📌 VoteView.jsx — 투표 진행 화면
-// 이 파일이 하는 일: 선택지 트리 표시 및 투표
-// 수정할 일: 투표 화면 디자인/기능 변경 시
+// 📌 VoteView.jsx — 투표 진행 화면 (PRD v2.1 바이럴 루프 적용)
+// 이 파일이 하는 일: 선택지 트리 표시 및 투표 + 투표 완료자 바이럴 전환
 // ================================================
 
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   ChevronLeft, Copy, Users, X,
-  Check, CornerDownRight, BarChart2, Network
+  Check, CornerDownRight, BarChart2, Network,
+  Share2, PlusCircle, FolderOpen // ✨ 새로 추가된 아이콘
 } from 'lucide-react';
 import { DESIGN_TOKENS } from '../../constants/colors';
 import TreeEngine from '../../utils/treeEngine';
@@ -16,7 +16,7 @@ import GuestModal from '../common/GuestModal';
 const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmin, onKick }) => {
   const [selectedId, setSelectedId] = useState(null);
   const [showGuest, setShowGuest]   = useState(!isAdmin && !hasVoted);
-  const [userName, setUserName]   = useState(isAdmin ? '방장' : '');
+  const [userName, setUserName]     = useState(isAdmin ? '방장' : '');
   const [userPersona, setUserPersona] = useState(null);
 
   const winningPaths = useMemo(
@@ -34,27 +34,8 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
     [decision.voters]
   );
 
-  return (
-    <>
-      {showGuest && (
-        <GuestModal
-        onJoin={(name, persona) => {
-          setUserName(name);
-          setUserPersona(persona);
-          setShowGuest(false);
-        }}
-        onClose={() => setView('home')}
-      />
-      )}
-      <header className="px-4 py-4 bg-white border-b border-gray-100 flex items-center justify-between shrink-0">
-        <button onClick={() => setView('home')} className="p-2 hover:bg-gray-100 rounded-full">
-          <ChevronLeft />
-        </button>
-        <h1 className="font-black text-base text-gray-900 truncate max-w-[240px] text-center">
-          {decision.title}
-        </h1>
-        <button
-  onClick={() => {
+  // ✨ 공유 로직 공통화 (상단 아이콘과 하단 버튼 모두 사용)
+  const handleShare = useCallback(() => {
     try {
       const json = JSON.stringify(decision);
       const encoded = encodeURIComponent(json);
@@ -73,14 +54,36 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
     } catch {
       showToast('링크 복사에 실패했습니다.');
     }
-  }}
-  className="p-2 hover:bg-gray-100 rounded-full text-gray-500"
->
-  <Copy className="w-5 h-5" />
-</button>
+  }, [decision, showToast]);
+
+  return (
+    <>
+      {showGuest && (
+        <GuestModal
+          onJoin={(name, persona) => {
+            setUserName(name);
+            setUserPersona(persona);
+            setShowGuest(false);
+          }}
+          onClose={() => setView('home')}
+        />
+      )}
+      
+      <header className="px-4 py-4 bg-white border-b border-gray-100 flex items-center justify-between shrink-0">
+        <button onClick={() => setView('home')} className="p-2 hover:bg-gray-100 rounded-full">
+          <ChevronLeft />
+        </button>
+        <h1 className="font-black text-base text-gray-900 truncate max-w-[240px] text-center">
+          {decision.title}
+        </h1>
+        <button onClick={handleShare} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+          <Copy className="w-5 h-5" />
+        </button>
       </header>
 
-      <main className={`flex-1 px-5 pt-4 overflow-y-auto bg-gray-50 ${isAdmin ? 'pb-56' : 'pb-40'}`}>
+      {/* 🚨 교정 포인트: 하단 바이럴 버튼 공간 확보를 위해 hasVoted 시 pb-64 적용 */}
+      <main className={`flex-1 px-5 pt-4 overflow-y-auto bg-gray-50 ${isAdmin ? 'pb-56' : hasVoted ? 'pb-64' : 'pb-40'}`}>
+        
         {/* 상태 배지 */}
         <div className="mb-4 flex items-center gap-2 flex-wrap shrink-0">
           <div className="inline-flex items-center gap-1.5 bg-[#FAFFEB] border border-[#B6FF33]/60 px-2.5 py-1 rounded-md shadow-sm">
@@ -99,7 +102,7 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
           </div>
         </div>
 
-        {/* 선택지 트리 */}
+        {/* 선택지 트리 (원본 유지) */}
         <div className="space-y-3">
           {rootOptions.map(root => {
             const l1Children = TreeEngine.getChildren(decision.options, root.id, 2);
@@ -230,7 +233,7 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
           })}
         </div>
 
-        {/* 관리자 패널 */}
+        {/* 관리자 감찰 명단 (원본 유지) */}
         {isAdmin && (
           <div className="mt-8 bg-white border-2 border-gray-900 rounded-2xl p-4 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)]">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
@@ -246,9 +249,9 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
                 ? decision.voteLogs.map((log, i) => (
                     <div key={i} className="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-xl p-3">
                       <div className="flex flex-col gap-0.5">
-                      <span className="font-bold text-gray-900 text-[13px]">
-  {log.persona?.emoji || '👤'} {log.userName}
-</span>
+                        <span className="font-bold text-gray-900 text-[13px]">
+                          {log.persona?.emoji || '👤'} {log.userName}
+                        </span>
                         <span className="font-medium text-gray-500 text-[11px] truncate max-w-[200px]">
                           선택: {decision.options.find(o => o.id === log.optionId)?.text || log.optionId}
                         </span>
@@ -268,48 +271,63 @@ const VoteView = ({ decision, setView, onVoteSubmit, hasVoted, showToast, isAdmi
         )}
       </main>
 
+      {/* 하단 고정 액션바 */}
       <div className={`absolute bottom-[76px] left-0 w-full px-6 pb-6 bg-gradient-to-t from-white via-white/90 to-transparent z-10 ${isAdmin ? 'pt-6' : 'pt-10'}`}>
-      {isAdmin ? (
-  <div className="space-y-2">
-    {decision.earlyCloseRate && decision.voters > 0 && (
-      <div className={`rounded-2xl p-3 text-center border ${
-        decision.voters >= Math.ceil(decision.earlyCloseRate / 10)
-          ? 'bg-[#FAFFEB] border-[#B6FF33]/60'
-          : 'bg-gray-50 border-gray-200'
-      }`}>
-        {decision.voters >= Math.ceil(decision.earlyCloseRate / 10) ? (
-          <>
-            <p className="text-[12px] font-black text-[#8CB82D]">
-              🎯 목표 투표율 {decision.earlyCloseRate}% 달성!
-            </p>
-            <p className="text-[11px] text-gray-500 font-bold mt-0.5">
-              지금 마감하시겠습니까?
-            </p>
-          </>
-        ) : (
-          <p className="text-[11px] font-black text-gray-400">
-            조기 마감 기준: {decision.earlyCloseRate}% | 현재: {decision.voters}명 참여
-          </p>
-        )}
-      </div>
-    )}
-    <button
-      onClick={() => setView('minimap')}
-      className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white rounded-2xl py-4 font-black shadow-xl active:scale-95 transition-all text-lg"
-    >
-      투표 강제 조기 마감하기
-    </button>
-  </div>
-        ) : hasVoted ? (
-          <div className="flex gap-2">
-            <button onClick={() => setView('minimap')} className="flex-1 bg-white border-2 border-[#D2DFEE] text-[#4A648A] rounded-2xl py-4 font-black shadow-sm active:scale-95 transition-all text-[13px] flex items-center justify-center gap-1.5">
-              <BarChart2 className="w-4 h-4" /> 리스트 뷰
-            </button>
-            <button onClick={() => setView('visualmap')} className="flex-1 bg-[#FFF0F3] border-2 border-[#FCD9E1] text-[#E8668A] rounded-2xl py-4 font-black shadow-sm active:scale-95 transition-all text-[13px] flex items-center justify-center gap-1.5">
-  <Network className="w-4 h-4" /> 비주얼 트리
+        
+        {isAdmin ? (
+          <div className="space-y-2">
+            {decision.earlyCloseRate && decision.voters > 0 && (
+              <div className={`rounded-2xl p-3 text-center border ${
+                decision.voters >= Math.ceil(decision.earlyCloseRate / 10)
+                  ? 'bg-[#FAFFEB] border-[#B6FF33]/60'
+                  : 'bg-gray-50 border-gray-200'
+              }`}>
+                {decision.voters >= Math.ceil(decision.earlyCloseRate / 10) ? (
+                  <>
+                    <p className="text-[12px] font-black text-[#8CB82D]">🎯 목표 투표율 {decision.earlyCloseRate}% 달성!</p>
+                    <p className="text-[11px] text-gray-500 font-bold mt-0.5">지금 마감하시겠습니까?</p>
+                  </>
+                ) : (
+                  <p className="text-[11px] font-black text-gray-400">조기 마감 기준: {decision.earlyCloseRate}% | 현재: {decision.voters}명 참여</p>
+                )}
+              </div>
+            )}
+            <button onClick={() => setView('minimap')} className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white rounded-2xl py-4 font-black shadow-xl active:scale-95 transition-all text-lg">
+              투표 강제 조기 마감하기
             </button>
           </div>
+
+        ) : hasVoted ? (
+          // 🚨 PRD v2.1 바이럴 루프 3종 장착 구역
+          <div className="space-y-3">
+            {/* 1. 생성자 전환 (가장 강조) */}
+            <button onClick={() => setView('create')} className="w-full bg-gradient-to-r from-[#E8668A] to-[#F4A067] text-white rounded-2xl py-4 font-black shadow-[0_8px_20px_-6px_rgba(232,102,138,0.5)] active:scale-95 transition-all text-[15px] flex items-center justify-center gap-2 animate-[pulse_2s_ease-in-out_infinite]">
+              <PlusCircle className="w-5 h-5" /> 당신도 3분 만에 새 안건 만들기
+            </button>
+
+            {/* 2. 공유 및 3. 다른 안건 보기 (리텐션) */}
+            <div className="flex gap-2">
+              <button onClick={handleShare} className="flex-1 bg-gray-900 text-white rounded-xl py-3 font-bold shadow-sm active:scale-95 transition-all text-xs flex items-center justify-center gap-1.5">
+                <Share2 className="w-4 h-4" /> 결과 카톡 공유
+              </button>
+              <button onClick={() => setView('home')} className="flex-1 bg-white border-2 border-gray-200 text-gray-700 rounded-xl py-3 font-bold shadow-sm active:scale-95 transition-all text-xs flex items-center justify-center gap-1.5">
+                <FolderOpen className="w-4 h-4" /> 다른 안건 보기
+              </button>
+            </div>
+
+            {/* 기존 차트 보기 버튼은 텍스트 링크 형태로 작게 유지 */}
+            <div className="flex justify-center gap-4 pt-1">
+              <button onClick={() => setView('minimap')} className="text-gray-400 hover:text-gray-600 font-bold text-[11px] flex items-center gap-1 transition-colors">
+                <BarChart2 className="w-3 h-3" /> 리스트 뷰 차트
+              </button>
+              <button onClick={() => setView('visualmap')} className="text-gray-400 hover:text-gray-600 font-bold text-[11px] flex items-center gap-1 transition-colors">
+                <Network className="w-3 h-3" /> 비주얼 트리맵
+              </button>
+            </div>
+          </div>
+
         ) : (
+          // 투표 전 상태
           <button
             disabled={!selectedId}
             onClick={() => selectedId && onVoteSubmit(decision.id, selectedId, userName, userPersona)}
