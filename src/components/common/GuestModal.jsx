@@ -1,8 +1,9 @@
 // ================================================
-// 📌 GuestModal.jsx — 참여자 이름 입력 + 페르소나 아바타
+// 📌 GuestModal.jsx — 참여자 이름 입력 + 페르소나 (보안 필터 적용)
 // ================================================
 
 import React, { useState, useMemo } from 'react';
+import { validateInput } from '../../utils/textFilter'; // ✨ 보안 엔진 장착
 
 const PERSONAS = [
   { emoji: '🦁', name: '신중한 사자' },
@@ -21,15 +22,23 @@ const PERSONAS = [
 
 const GuestModal = ({ onJoin, onClose }) => {
   const [name, setName] = useState('');
+  const [error, setError] = useState(''); // ✨ 에러 메시지 상태 추가
 
-  // 랜덤 페르소나 — 모달이 열릴 때 한 번만 결정
   const persona = useMemo(() => {
     return PERSONAS[Math.floor(Math.random() * PERSONAS.length)];
   }, []);
 
   const handleJoin = () => {
-    if (!name.trim()) return;
-    // 이름과 함께 아바타 정보도 전달
+    // ✨ [보안 검열] 10자 제한 및 비속어 필터링
+    const validation = validateInput(name, 10);
+    
+    if (!validation.isValid) {
+      setError(validation.errorMessage); // 에러 발생 시 UI 표시
+      return;
+    }
+    
+    // 검열 통과 시 입장
+    setError('');
     onJoin(name.trim(), persona);
   };
 
@@ -42,6 +51,7 @@ const GuestModal = ({ onJoin, onClose }) => {
          className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors">
         <span className="text-gray-500 text-sm font-black">✕</span>
         </button>
+        
         {/* 아바타 표시 */}
         <div className="relative inline-block mb-4">
           <div className="w-20 h-20 bg-gradient-to-br from-[#FFF0F3] to-[#FFE4B5] rounded-2xl flex items-center justify-center text-4xl shadow-md">
@@ -64,14 +74,25 @@ const GuestModal = ({ onJoin, onClose }) => {
           type="text"
           maxLength={10}
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={e => {
+            setName(e.target.value);
+            if (error) setError(''); // 입력 시도 시 에러 메시지 초기화
+          }}
           onKeyDown={e => e.key === 'Enter' && handleJoin()}
           placeholder="예: 홍길동 (마케팅팀)"
           className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-5 py-4 text-gray-900 font-black placeholder-gray-400 focus:outline-none focus:border-[#E8668A] transition-all text-center"
         />
-        <div className="text-right text-[11px] text-gray-400 font-black mt-1 mb-4 pr-1">
-          {name.length}/10
-        </div>
+        
+        {/* ✨ 에러 메시지 영역 */}
+        {error ? (
+          <div className="text-red-500 text-[11px] font-black mt-2 mb-2 animate-in fade-in">
+            {error}
+          </div>
+        ) : (
+          <div className="text-right text-[11px] text-gray-400 font-black mt-1 mb-4 pr-1">
+            {name.length}/10
+          </div>
+        )}
 
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-3.5 mb-5">
           <p className="text-[11px] text-gray-500 font-bold leading-relaxed">
@@ -80,7 +101,6 @@ const GuestModal = ({ onJoin, onClose }) => {
         </div>
 
         <button
-          disabled={!name.trim()}
           onClick={handleJoin}
           className={`w-full py-5 rounded-2xl font-black text-white text-lg transition-all ${
             !name.trim()
