@@ -5,12 +5,12 @@ import { getFirestore } from 'firebase/firestore';
 // TODO: 나중에 대표님의 파이어베이스 콘솔에서 발급받은 진짜 설정값으로 교체해야 합니다.
 // (지금은 이대로 두셔도 에러가 나지 않도록 껍데기만 만들어 두었습니다.)
 const firebaseConfig = {
-  apiKey: "API_KEY_PLACEHOLDER",
-  authDomain: "PROJECT_ID.firebaseapp.com",
-  projectId: "PROJECT_ID",
-  storageBucket: "PROJECT_ID.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
+  apiKey: "AIzaSyBkwT3Na6lpPsuiVzYXEw6yRsShtsR9nLc",
+  authDomain: "decision-flow-gemini.firebaseapp.com",
+  projectId: "decision-flow-gemini",
+  storageBucket: "decision-flow-gemini.firebasestorage.app",
+  messagingSenderId: "933843686526",
+  appId: "1:933843686526:web:189feec3252d5e50e8f42f"
 };
 
 // 파이어베이스 앱 초기화 (시동 걸기)
