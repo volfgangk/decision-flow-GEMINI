@@ -18,15 +18,17 @@ export const useAgenda = () => {
 
       // 파이어베이스 Agendas 컬렉션에 새 문서 추가
       const agendasRef = collection(db, 'Agendas');
+      
+      // 🚨 [보안 및 에러 픽스] undefined 값이 DB에 들어가는 것을 원천 차단합니다.
       const newAgendaDoc = await addDoc(agendasRef, {
-        team_id: teamId,                // 1. 소속 팀 (PRD v2.1 핵심)
-        creator_id: currentUser.uid,    // 2. 생성자 UID
-        title: agendaData.title,        // 3. 안건 제목
-        options: agendaData.options,    // 4. 선택지 배열
-        early_close_rate: agendaData.earlyCloseRate, // 5. 조기 마감 조건
-        deadline: agendaData.deadline,  // 6. 마감 기한
-        status: 'active',               // 7. 상태 (진행중)
-        voter_ids: [],                  // 8. 투표자 명단 (초기엔 빈 배열)
+        team_id: teamId,                
+        creator_id: currentUser.uid,    
+        title: agendaData.title || "",                 
+        options: agendaData.options || [],             
+        early_close_rate: agendaData.earlyCloseRate ?? null, // 0은 통과, undefined는 null로
+        deadline: agendaData.deadline || null,               // 값이 없으면 null 처리
+        status: 'active',               
+        voter_ids: [],                  
         created_at: serverTimestamp(),
       });
 
