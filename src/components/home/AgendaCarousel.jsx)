@@ -1,0 +1,99 @@
+import React, { useState, useRef } from 'react';
+import { Clock, Users, QrCode } from 'lucide-react';
+
+export default function AgendaCarousel({ list, onSelectId, onOpenQr }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef(null);
+
+  if (list.length === 0) {
+    return (
+      <div className="bg-white border-2 border-dashed border-gray-200 rounded-[32px] p-10 text-center">
+        <p className="text-gray-400 text-xs font-black">현재 진행 중인 안건이 없습니다.</p>
+      </div>
+    );
+  }
+
+  // 좌우 스크롤 할 때 카드가 멈춘 인덱스를 감지하는 함수 (최적 연산 적용)
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, clientWidth } = scrollRef.current;
+    const index = Math.round(scrollLeft / (clientWidth - 40)); // 미세 패딩 보정
+    if (index !== activeIndex && index >= 0 && index < list.length) {
+      setActiveIndex(index);
+    }
+  };
+
+  return (
+    <div className="w-full flex flex-col gap-4">
+      {/* 🌟 기획서 스펙: 좌우 스크롤 캐러셀 컨테이너 (스냅 정렬 탑재) */}
+      <div 
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="w-full flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 py-2 scrollbar-none"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {list.map((agenda) => (
+          <div 
+            key={agenda.id}
+            className="w-[calc(100vw-64px)] max-w-[340px] shrink-0 snap-center bg-white border border-gray-100 rounded-[32px] p-5 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.03)] flex flex-col justify-between h-[180px] relative transition-transform"
+          >
+            {/* 상단 타이틀 */}
+            <div>
+              <div className="flex justify-between items-start gap-2 mb-2">
+                <h4 
+                  onClick={() => onSelectId(agenda.id)}
+                  className="font-black text-gray-900 text-base leading-snug cursor-pointer hover:text-[#E8668A] transition-colors truncate flex-1"
+                >
+                  {agenda.title}
+                </h4>
+                
+                {/* 🌟 임시 QR코드 자리 (터치 시 확대 모달 발동) */}
+                <button 
+                  onClick={() => onOpenQr(agenda.title, agenda.id)}
+                  className="p-1.5 bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+                  title="QR코드 확대"
+                >
+                  <QrCode className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* 하단 메타 데이터 구역 */}
+            <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-auto">
+              <div className="flex items-center gap-3 text-xs font-bold text-gray-400">
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-red-400" /> D-12시간
+                </span>
+                <span className="w-1 h-1 rounded-full bg-gray-200"></span>
+                <span className="flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5 text-blue-400" /> {agenda.voters || 0}명 참여
+                </span>
+              </div>
+              
+              <button 
+                onClick={() => onSelectId(agenda.id)}
+                className="bg-gray-50 hover:bg-gray-900 hover:text-white text-gray-700 font-black text-[11px] px-3 py-2 rounded-xl transition-all"
+              >
+                투표하기
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 🌟 기획서 스펙: 동적으로 크기가 변하는 점(Dot) 인디케이터 구역 */}
+      <div className="flex justify-center items-center gap-1.5 mt-1">
+        {list.map((_, idx) => (
+          <div 
+            key={idx}
+            className={`rounded-full transition-all duration-300 ${
+              idx === activeIndex 
+                ? 'w-4 h-1.5 bg-gray-800' // 활성화된 카드는 길어짐
+                : 'w-1.5 h-1.5 bg-gray-200'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
